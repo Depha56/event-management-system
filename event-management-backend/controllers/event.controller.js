@@ -1,92 +1,61 @@
 const Event = require('../models/event.model.js');
-const { check, validationResult } = require('express-validator');
 
-exports.getEvents = async (req, res) => {
-  try {
-    const events = await Event.find();
-    res.json(events);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+// Create an event
+exports.createEvent = async (req, res) => {
+ try {
+    const event = new Event(req.body);
+    await event.save();
+    res.status(201).send(event);
+ } catch (error) {
+    res.status(400).send(error);
+ }
 };
 
-exports.getEventById = async (req, res) => {
-  try {
+// Get all events
+exports.getEvents = async (req, res) => {
+ try {
+    const events = await Event.find();
+    res.send(events);
+ } catch (error) {
+    res.status(500).send(error);
+ }
+};
+
+// Get event details by ID
+exports.getEventDetails = async (req, res) => {
+ try {
     const event = await Event.findById(req.params.id);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).send();
     }
-    res.json(event);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    res.send(event);
+ } catch (error) {
+    res.status(500).send(error);
+ }
 };
 
-exports.createEvent = async (req, res) => {
-  const newEvent = new Event({
-    title: req.body.title,
-    date: req.body.date,
-    location: req.body.location,
-    ticketsAvailable: req.body.ticketsAvailable,
-  });
-
-  try {
-    const savedEvent = await newEvent.save();
-    res.status(201).json(savedEvent);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
+// Update an event by ID
 exports.updateEvent = async (req, res) => {
-  try {
-    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedEvent) {
-      return res.status(404).json({ message: 'Event not found' });
+ try {
+    const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!event) {
+      return res.status(404).send();
     }
-    res.json(updatedEvent);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+    res.send(event);
+ } catch (error) {
+    res.status(400).send(error);
+ }
 };
 
+// Delete an event by ID
 exports.deleteEvent = async (req, res) => {
-  try {
-    const deletedEvent = await Event.findByIdAndDelete(req.params.id);
-    if (!deletedEvent) {
-      return res.status(404).json({ message: 'Event not found' });
+ try {
+    const event = await Event.findByIdAndDelete(req.params.id);
+    if (!event) {
+      return res.status(404).send();
     }
-    res.json({ message: 'Event deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    res.send(event);
+ } catch (error) {
+    res.status(500).send(error);
+ }
 };
-
-exports.createEvent = [
-  // Validation checks
-  check('title').notEmpty().withMessage('Title is required'),
-  check('date').isISO8601().withMessage('Date must be in ISO 8601 format'),
-  check('location').notEmpty().withMessage('Location is required'),
-  check('ticketsAvailable').isInt({ gt: 0 }).withMessage('Tickets available must be a positive integer'),
-
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const newEvent = new Event({
-      title: req.body.title,
-      date: req.body.date,
-      location: req.body.location,
-      ticketsAvailable: req.body.ticketsAvailable,
-    });
-
-    try {
-      const savedEvent = await newEvent.save();
-      res.status(201).json(savedEvent);
-    } catch (err) {
-      res.status(400).json({ message: err.message });
-    }
-  },
-];

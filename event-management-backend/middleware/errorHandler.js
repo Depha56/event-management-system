@@ -1,9 +1,8 @@
-function errorHandler(err, req, res, next) {
-    if (res.headersSent) {
-      return next(err);
-    }
-    res.status(500).json({ message: err.message });
-  }
-  
-  module.exports = errorHandler;
-  
+const errorHandler = (err, req, res, next) => {
+    const status = err.status || 500;
+    const message = err.message || 'Internal Server Error';
+    res.status(status).send({ message });
+   };
+   
+   module.exports = errorHandler;
+   
